@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VA3ZZA | Evan's Logbook</title>
+
+    <style>
+        gray {
+            color: rgb(117, 117, 117);
+        }
+    </style>
+
+    <link rel="stylesheet" href="/static/styles/table.css">
+</head>
+
+<body onload="loadLogEntries();">
+
+    <h1>VA3ZZA</h1>
+    <p>
+        <strong>VA3ZZA</strong> is my primary personal callsign.
+    </p>
+
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <td>Worked</td>
+                <td>Date</td>
+                <td>Band</td>
+                <td>Mode</td>
+                <td>Frequency</td>
+            </tr>
+        </thead>
+        <tbody id="log_body">
+            <!-- Loading notice -->
+            <tr>
+                <td align="center" colspan="5">
+                    Hold on... Fetching data from a remote server.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSFiruyCUhPBD6UksfxJaQpBeo6QZjq--usoncXSM0L7ED3hggQ5Us0d6E_eXWmD2Yrb8wCqcMWTtx7/pub?gid=0&single=true&output=csv";
+
+        async function loadLogEntries() {
+            // Fetch the CSV data
+            let response = await fetch(CSV_URL);
+
+            // Parse the CSV data
+            let data = await response.text();
+            let rows = data.split("\n").slice(1);
+            rows = rows.map(row => row.split(","));
+            rows = rows.map(row => row.map(cell => cell.trim()));
+
+            // Sort the rows by date (newest first) (col 3)
+            rows.sort((a, b) => {
+                let dateA = new Date(a[2]);
+                let dateB = new Date(b[2]);
+                return dateB - dateA;
+            });
+
+            // Create the table rows
+            let logBody = document.getElementById("log_body");
+            logBody.innerHTML = "";
+            for (let row of rows) {
+                logBody.innerHTML += `<tr>
+                    <td>${row[1]}</td>
+                    <td>${row[2]}</td>
+                    <td>${row[3]}</td>
+                    <td class="mode-${row[4]}">${row[4]}</td>
+                    <td><strong>${row[5]}</strong><gray>MHz</gray></td>
+                </tr>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
